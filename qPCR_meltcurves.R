@@ -4,8 +4,8 @@ library(reshape2)
 library(ggplot2)
 library(xlsx)
 
-setwd("~/Documents/qPCR_QC/2014-08-14/")
-qpcr.table<-read.xlsx2("20140814_172040_CT009851_3GRDAMPM -  Melt Curve Derivative Results.xls", 
+setwd("~/Documents/qPCR_QC/2014-08-15/")
+qpcr.table<-read.xlsx2("20140815_174558_CT009851_PRIMER_VALID -  Melt Curve Derivative Results.xlsx", 
                   sheetIndex = 1,as.data.frame = TRUE, colClasses = rep("numeric", 500))
 
 qpcr.table<-qpcr.table[,2:length(colnames(qpcr.table))]
@@ -20,7 +20,7 @@ primer<-c("NotI 70-71","NotI 84-85", "NotI 88-89", "NotI 90-91","Not-4","H10", "
 for (i in levels(qt$column)) {
   
   png(paste("meltCurve_2step_", primer[as.numeric(i)], ".png", sep =""), height=800, width=1200, units="px")
-  p<-ggplot(qt[qt$column==i,], aes(Temperature, RFU, col=row)) + geom_line() + labs(title=primer[as.numeric(i)])
+  p<-ggplot(qt[qt$column==i,], aes(Temperature, dRFU, col=row)) + geom_line() + labs(title=primer[as.numeric(i)])
   print(p)
   dev.off()
   
