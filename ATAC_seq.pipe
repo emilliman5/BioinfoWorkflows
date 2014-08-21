@@ -1,0 +1,28 @@
+GENOME="hg19"	
+THREADS=1	
+	
+ATAC_map = {
+
+	exec """bowtie2 $GENOME -1 $input1.fastq -2 $input2.fastq -N 1 -S ${input1}_mapped_${GENOME}_N1.sam --un unmapped_${input1}.fastq -p $THREADS -X 2000 --no-discordant """
+	
+	}
+	
+FASTQC = {
+			exec "fastqc $input.sam "
+			forward input
+	}
+	
+samToBam = {
+
+	exec """ samtools view -bS $input.sam | samtools sort - - > $output """
+	
+	}
+	
+index = {
+
+	samtools index $input.bam
+		forward input
+	
+}
+
+Bpipe.run { ATAC_map + FASTQC + samToBam + index } 
