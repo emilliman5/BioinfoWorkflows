@@ -4,8 +4,11 @@ library(reshape2)
 library(ggplot2)
 library(xlsx)
 
-setwd("~/Documents/qPCR_QC/2014-08-20/")
-qpcr.table<-read.xlsx2("20140820_133749_CT009851_PRIMER_VALID -  Melt Curve Derivative Results.xlsx", 
+## Navigate to directory with qPCR files...
+## setwd("~/Documents/qPCR_QC/2014-08-20/")
+
+
+qpcr.table<-read.xlsx2(dir()[grep("Melt Curve Derivative Results.xlsx", dir())], 
                   sheetIndex = 1,as.data.frame = TRUE, colClasses = rep("numeric", 500))
 
 qpcr.table<-qpcr.table[,2:length(colnames(qpcr.table))]
@@ -26,4 +29,4 @@ for (i in levels(qt$column)) {
   dev.off()
   
 }
-
+rm(p)
