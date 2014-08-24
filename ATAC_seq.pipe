@@ -1,30 +1,35 @@
 GENOME="hg19"	
 THREADS=8	
+bin=10
 	
 ATAC_map = {
-	transform("bam")
+
 	exec """bowtie2 hg19 -1 $input1.fastq -2 $input2.fastq -X 2000 -N 1 -p $THREADS --un NT2_Veh_unmapped.fastq --no-unal --al-conc NT2_Veh_hg19_N1.sam 
 	--un-conc NT2_Veh_discordant_hg19_N1.sam | samtools view -bS - > $output.bam"""
 	
 	}
 	
 FASTQC = {
-			exec "~/bin/FastQC/fastqc $input.bam "
+			exec "~/bin/FastQC/fastqc -t $THREADS $input.bam "
 	}
 
 bamSort = {
-	transform("bam")
+
 	exec """samtools sort -o $input.bam - > $output"""
 	
 	} 	
 index = {
 
-	exec "echo $input\n\n"
 	exec "samtools index $input"
+	forward input
 	
 }
 
 coverage = {
-
+	transform("bigWig")
+	
+	exec """bamCoverage -b $input -bs $bin -p $THREADS -o $output.bigWig --ignoreDuplicates"""
+	
 	}
-Bpipe.run { ATAC_map + FASTQC + bamSort+ index }
+	
+Bpipe.run { ATAC_map + FASTQC + bamSort + index + coverage }
