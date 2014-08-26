@@ -32,4 +32,17 @@ coverage = {
 	
 	}
 	
+frag_length = {
+		
+		exec "   "samtools view $input.bam | perl fraglength.pl > otput.txt"
+		
+	}
+	
+plot = {
+
+	R """
+	
+	"""	
+	}
+	
 Bpipe.run { ATAC_map + FASTQC + bamSort + index + coverage }
