@@ -3,21 +3,24 @@ THREADS=8
 bin=10
 	
 ATAC_map = {
-
-	exec """bowtie2 hg19 -1 $input1.fastq -2 $input2.fastq -X 2000 -N 1 -p $THREADS  --no-unal --al-conc NT2_Veh_hg19_N1.sam 
-	--un-conc NT2_Veh_discordant_hg19_N1.sam --no-discordant | samtools view -bS - > $output.bam"""
-	
+	transform('bowtie2_' + GENOME + '.bam', 'bowtie2_discord_' + GENOME + '.fastq'){
+		exec """bowtie2 hg19 -1 $input1.fastq -2 $input2.fastq -X 2000 -N 1 -p $THREADS  --no-unal 
+		--un-conc ${output2} --no-discordant | samtools view -bS - | samtools sort - $output1.prefix"""
+		}
 	}
 	
 FASTQC = {
-			exec "~/bin/FastQC/fastqc -t $THREADS $input.bam "
+			exec "~/bin/FastQC/fastqc -t $THREADS $input1"
+			forward input
 	}
 
 bamSort = {
-
-	exec """samtools sort -o $input.bam - > $output"""
+	filter("sorted"){
+		exec """samtools sort $input $output.prefix"""
 	
-	} 	
+		} 	
+	}
+	
 index = {
 
 	exec "samtools index $input"
@@ -32,17 +35,10 @@ coverage = {
 	
 	}
 	
-frag_length = {
-		
-		exec "   "samtools view $input.bam | perl fraglength.pl > otput.txt"
-		
-	}
-	
-plot = {
 
-	R """
-	
-	"""	
+interMatePair = {
+
+		exec
 	}
 	
-Bpipe.run { ATAC_map + FASTQC + bamSort + index + coverage }
+Bpipe.run { ATAC_map + FASTQC + index + coverage }
