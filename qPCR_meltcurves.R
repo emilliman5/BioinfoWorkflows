@@ -18,13 +18,14 @@ qt<-melt(qpcr.table, id = "Temperature", variable.name="Well", value.name="dRFU"
 qt$row<-as.factor(substring(as.character(qt$Well), 0, 1))
 qt$column<-as.factor(substring(as.character(qt$Well), 2))
 
-primer<-c("MMTV 142-143","MMTV 144-145", "MMTV 146-147", "MMTV 148-149","MMTV 150-151", 
-          "MMTV 152-153","MMTV 154-155", "MMTV 156-157", "MMTV 158-159", "MMTV 160-161", "TPA-25 Dilute ChIP", "TPA-25 ChIP", "","", "", "", "", "", "", "", "", "", "")
+primer<-read.xlsx2(dir(pattern="plate"), sheetIndex = 2,as.data.frame = TRUE, header=FALSE)
+
+primer$X2<-gsub("/", "-", primer$X2)
 
 for (i in levels(qt$column)) {
   
-  png(paste("meltCurve_2step_MMTV_locus_", primer[as.numeric(i)], ".png", sep =""), height=800, width=1200, units="px")
-  p<-ggplot(qt[qt$column==i,], aes(Temperature, dRFU, col=row)) + geom_line() + labs(title=primer[as.numeric(i)])
+  png(paste("meltCurve_2step_MMTV_locus_", primer[as.numeric(i),2], ".png", sep =""), height=800, width=1200, units="px")
+  p<-ggplot(qt[qt$column==i,], aes(Temperature, dRFU, col=row)) + geom_line() + labs(title=primer[as.numeric(i),2])
   print(p)
   dev.off()
   
