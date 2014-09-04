@@ -25,7 +25,7 @@ primer$X2<-gsub("/", "-", primer$X2)
 for (i in levels(qt$column)) {
   
   png(paste("meltCurve_2step_", primer[as.numeric(i),2], ".png", sep =""), height=800, width=1200, units="px")
-  p<-ggplot(qt[qt$column==i,], aes(Temperature, dRFU, col=row)) + geom_line() + labs(title=primer[as.numeric(i),2])
+  p<-ggplot(qt[qt$column==i,], aes(Temperature, dRFU, col=row)) + geom_line(size=1) + labs(title=primer[as.numeric(i),2])
   print(p)
   dev.off()
   
