@@ -1,11 +1,11 @@
 GENOME="hg19"	
-THREADS=8	
+THREADS=12	
 bin=10
 	
 ATAC_map = {
 	transform('bowtie2_' + GENOME + '.sam', 'bowtie2_discord_' + GENOME + '.fastq'){
 		exec """bowtie2 hg19 -1 $input1.fastq -2 $input2.fastq -X 2000 -N 1 -p $THREADS  --no-unal 
-		--un-conc ${output2} --no-discordant -S $output1.prefix"""
+		--un-conc ${output2} --no-discordant -S $output1"""
 		}
 	}
 	
@@ -14,9 +14,8 @@ FASTQC = {
 			forward input
 	}
 
-bamToSam = {
+samToBam = {
 	transform('.bam'){
-	
 		exec """ samtools view -bS $input | samtools sort - $output.prefix """
 		}	
 	}
@@ -24,7 +23,6 @@ bamToSam = {
 bamSort = {
 	filter("sorted"){
 		exec """samtools sort $input $output.prefix"""
-	
 		} 	
 	}
 	
@@ -36,20 +34,16 @@ index = {
 }
 
 coverage = {
-	transform("bigWig")
-	
-	exec """bamCoverage -b $input -bs $bin -p $THREADS -o $output.bigWig --ignoreDuplicates"""
-	
-	}
-	
-
-interMatePair = {
-
-		transform('Nucs' + '.sam', 'NFR_' + 'FRAGLENGTH' + '.sam', 'fraglength_'+'.txt;) {
-		
-			exec """
+	transform('.bigWig'){
+		exec """bamCoverage -b $input -bs $bin -p 6 -o $output --ignoreDuplicates"""
 		}
 	}
 	
+
+intraMateDist = {
+		transform('NFR'+'.sam', 'NUC'+'.sam'){
+			exec """perl ~/scripts/sam_intraPairDist.pl $input.sam $output1 $output2"""
+		}
+	}
 	
-Bpipe.run { ATAC_map + FASTQC + index + coverage }
+Bpipe.run { ATAC_map + FASTQC + intraMateDist + "%" * [samToBam + index + coverage] }
