@@ -20,15 +20,14 @@ qt$column<-as.factor(substring(as.character(qt$Well), 2))
 
 primer<-read.xlsx2(dir(pattern="plate"), sheetIndex = 1, as.data.frame = TRUE, header=FALSE)
 
-primer.list<-primer[2,2:25]
-primer.list[1,]<-gsub("/", "-", primer.list[1,])
-
+primer.list<-unname(unlist(primer[2,2:25]))[1:24]
+#primer.list[1,]<-gsub("/", "-", primer.list[1,])
 
 
 for (i in levels(qt$column)) {
   
-  png(paste("meltCurve_2step_", primer.list[,as.numeric(i)], ".png", sep =""), height=800, width=1200, units="px")
-  p<-ggplot(qt[qt$column==i,], aes(Temperature, dRFU, col=row)) + geom_line(size=1) + labs(title=primer[as.numeric(i),2])
+  png(paste("meltCurve_", primer.list[as.numeric(i)], ".png", sep =""), height=800, width=1200, units="px")
+  p<-ggplot(qt[qt$column==i,], aes(Temperature, dRFU, col=row)) + geom_line(size=1) + ggtitle(as.character(primer.list[as.numeric(i)]))
   print(p)
   dev.off()
   
