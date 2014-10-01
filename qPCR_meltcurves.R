@@ -35,9 +35,11 @@ primer.list<-unname(unlist(primer[2,2:25]))[1:24]
 primer.list<-droplevels(primer.list)
 primer.list<-gsub("/", "-", primer.list)
 
-for (id in 1..lenght()){  
-  primer.list<-substr(primer.list, 1, nchar(primer.list)-1) 
-
+for (id in 1:length(primer.list)){  
+  
+  if(length(grep(pattern = "\\s$", x = primer.list[id]))>0){
+    primer.list[id]<-substr(primer.list[id], 1, nchar(primer.list[id])-1) 
+  }
 }
 
 for (i in levels(qt$column)) {
