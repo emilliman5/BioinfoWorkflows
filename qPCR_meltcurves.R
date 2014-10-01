@@ -54,3 +54,7 @@ for (i in levels(qt$column)) {
 }
 
 rm(p1, p2)
+
+
+qPCR[[l]]<-list(substr(paste(getwd()), nchar(paste(getwd()))-9, nchar(paste(getwd()))), qt, q.amp, primer.list)
+l<-l+1
