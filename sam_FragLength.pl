@@ -9,7 +9,7 @@ my @suffixlist=(".sam", ".bam", ".bam.bai", ".fastq");
 open (SAM, "<$ARGV[0]") || die "Could not open $ARGV[0]\n";
 
 my $file=basename($ARGV[0], @suffixlist);
-my $frag_file=$file."_fragLength.sam";
+my $frag_file=$file."_fragLength.txt";
 
 open (TXT, ">>$frag_file");
 
@@ -20,6 +20,6 @@ while (<SAM>){
 	my @tmp=split(/\t/, $_);
 		
 		if ($tmp[8]>=0){
-			print TXT $_."\n";
+			print TXT $tmp[8]."\n";
 		}	
 	}
