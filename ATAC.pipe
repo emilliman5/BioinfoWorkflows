@@ -1,0 +1,56 @@
+GENOME="hg19"	
+THREADS=16	
+bin=10
+
+cutAdapt = {
+	filter("cutAdapt"){
+	
+		exec """ cutadapt -a CTGTCTCTTATA $input -o $output -m 55 """
+		}
+	}
+	
+bowtie2 = {
+	transform('bowtie2_' + GENOME + '.sam'){
+		exec """bowtie2 hg19 -1 $input1 -2 $input2 -X 2000 -N 1 -p $THREADS --no-unal --dovetail --no-mixed 
+		--no-discordant -S $output1"""
+		}
+	}
+	
+FASTQC = {
+			exec "~/bin/FastQC/fastqc -t $THREADS $input"
+			forward input
+	}
+
+samToBam = {
+	transform('.bam'){
+		exec """ samtools view -bS $input.sam | samtools sort - $output.prefix """
+		}	
+	}
+	
+bamSort = {
+	filter("sorted"){
+		exec """samtools sort $input $output.prefix"""
+		} 	
+	}
+	
+index = {
+
+	exec "samtools index $input"
+	forward input
+	
+}
+
+coverage = {
+	transform('.bigWig'){
+		exec """bamCoverage -b $input -bs $bin -p 8 -o $output --ignoreDuplicates"""
+		}
+	}
+	
+
+intraMateDist = {
+		transform('NFR'+'.sam', 'NUC'+'.sam', 'intraMate_Dist'+'.txt'){
+			exec """perl ~/scripts/sam_intraPairDist.pl $input.sam $output1 $output2 $output3"""
+		}
+	}
+	
+Bpipe.run { "%.fastq" * [cutAdapt] + bowtie2 + FASTQC + intraMateDist + "%.sam" * [samToBam + index + coverage] }
