@@ -1,5 +1,5 @@
 GENOME="hg19"	
-THREADS=12	
+THREADS=8	
 bin=10
 	
 ATAC_map = {
