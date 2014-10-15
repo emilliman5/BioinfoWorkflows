@@ -6,3 +6,5 @@ parallel bedGraphTobigWig {} ~/bin/hg19.chrom {}.bw ::: *.bedgraph
 sort -k1,1 -k2,n2 GR_1hr_Dex_hg19.bedgraph > GR_1hr_Dex_hg19_sort.bedgraph 
 
 perl -e 'open (INFILE, "<SRR828755.fastq"); open (OUTFILE, ">>SRR828755_corrected.fastq"); my $flag; while(<INFILE>){ chomp; next if($_=~/written/ig); if ($_=~/^@/ && $flag <1){ print OUTFILE $_."\n"; $flag=3;} elsif($flag>=1){ print OUTFILE $_."\n"; $flag--;}}'
+
+ls *.sam | parallel "samtools view -b -S {} | samtools sort - {.}; samtools index {.}.bam"
