@@ -1,17 +1,23 @@
-GENOME="hg19"	
-THREADS=16	
+GENOME="hg19"
+FRAG="180"	
+THREADS=8	
 bin=10
 
-cutAdapt = {
-	filter("cutAdapt"){
+sickle={
+	exec """ sickle pe -t illumina -f $input1 -r $input2 -o $output1 -p $output2 -s $output3 """
 	
-		exec """ cutadapt -a CTGTCTCTTATA $input -o $output -m 55 """
+	}			
+
+cutAdapt = {
+	transform('cutAdapt'+'.fastq'+'.gz'){
+	
+		exec """ cutadapt -a CTGTCTCTTATA $input -o $output"""
 		}
 	}
 	
 bowtie2 = {
-	transform('bowtie2_' + GENOME + '.sam'){
-		exec """bowtie2 hg19 -1 $input1 -2 $input2 -X 2000 -N 1 -p $THREADS --no-unal --dovetail --no-mixed 
+	transform('.fastq.gz') to('bowtie2_N1_' + GENOME + '.sam'){
+		exec """bowtie2 GENOME -1 $input1 -2 $input2 -X 2000 -N 1 -p $THREADS --no-unal --dovetail --no-mixed 
 		--no-discordant -S $output1"""
 		}
 	}
@@ -23,16 +29,10 @@ FASTQC = {
 
 samToBam = {
 	transform('.bam'){
-		exec """ samtools view -bS $input.sam | samtools sort - $output.prefix """
+		exec """ samtools view -bS $inputs.sam | samtools sort - $output.prefix """
 		}	
 	}
-	
-bamSort = {
-	filter("sorted"){
-		exec """samtools sort $input $output.prefix"""
-		} 	
-	}
-	
+
 index = {
 
 	exec "samtools index $input"
@@ -42,15 +42,16 @@ index = {
 
 coverage = {
 	transform('.bigWig'){
-		exec """bamCoverage -b $input -bs $bin -p 8 -o $output --ignoreDuplicates"""
+		exec """bamCoverage -b $input -bs $bin -p 8 -o $output --ignoreDuplicates --normalizeTo1x 2451960000"""
 		}
 	}
 	
 
 intraMateDist = {
 		transform('NFR'+'.sam', 'NUC'+'.sam', 'intraMate_Dist'+'.txt'){
-			exec """perl ~/scripts/sam_intraPairDist.pl $input.sam $output1 $output2 $output3"""
+			exec """perl ~/scripts/sam_intraPairDist.pl FRAG $input.sam $output1 $output2 $output3"""
+			forward input
 		}
 	}
 	
-Bpipe.run { "%.fastq" * [cutAdapt] + bowtie2 + FASTQC + intraMateDist + "%.sam" * [samToBam + index + coverage] }
+Bpipe.run { "%.fastq" * [cutAdapt] + sickle + bowtie2 + [FASTQC, intraMateDist] + "%.sam" * [samToBam + index + coverage] }
