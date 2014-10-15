@@ -24,7 +24,7 @@ bowtie2 = {
 	
 deDupe = {
 	transform("dedupe"+."bam", "metrics"+'.txt'){
-		java -Xmx2g -jar PicardCommand.jar 
+		java -Xmx2g -jar MarkDuplicates.jar 
 		INPUT=$input.bam
 		OUTPUT=$output1
 		METRICS_FILE=$output2
