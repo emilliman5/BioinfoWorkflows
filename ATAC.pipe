@@ -22,6 +22,16 @@ bowtie2 = {
 		}
 	}
 	
+deDupe = {
+	transform("dedupe"+."bam", "metrics"+'.txt'){
+		java -Xmx2g -jar PicardCommand.jar 
+		INPUT=$input.bam
+		OUTPUT=$output1
+		METRICS_FILE=$output2
+		REMOVE_DUPLICATES=true
+		}
+	}
+	
 FASTQC = {
 			exec "~/bin/FastQC/fastqc -t $THREADS $input"
 			forward input
@@ -54,4 +64,4 @@ intraMateDist = {
 		}
 	}
 	
-Bpipe.run { "%.fastq" * [cutAdapt] + sickle + bowtie2 + [FASTQC, intraMateDist] + "%.sam" * [samToBam + index + coverage] }
+Bpipe.run { "%.fastq" * [cutAdapt] + sickle + bowtie2 + [FASTQC, intraMateDist] + "%.sam" * [samToBam + dedupe + index + coverage] }
