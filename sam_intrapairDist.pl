@@ -10,7 +10,7 @@ my $nuc=180;
 
 open (SAM, "<$ARGV[1]") || die "Could not open $ARGV[0]\n";
 
-my $file=basename($ARGV[0], @suffixlist);
+my $file=basename($ARGV[1], @suffixlist);
 
 # my $nfr_file=$file."_NFR.sam";
 # my $nuc_file=$file."_Nuc.sam";
