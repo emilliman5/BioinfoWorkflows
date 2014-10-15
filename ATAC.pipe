@@ -24,11 +24,12 @@ bowtie2 = {
 	
 deDupe = {
 	transform("dedupe"+."bam", "metrics"+'.txt'){
-		java -Xmx2g -jar MarkDuplicates.jar 
+		java -Xmx2g -jar ${PATH_TO_PICARD}/MarkDuplicates.jar 
 		INPUT=$input.bam
 		OUTPUT=$output1
 		METRICS_FILE=$output2
 		REMOVE_DUPLICATES=true
+		ASSUME_SORTED=true
 		}
 	}
 	
