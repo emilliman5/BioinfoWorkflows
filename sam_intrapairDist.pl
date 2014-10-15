@@ -6,6 +6,8 @@ use File::Basename;
 
 my @suffixlist=(".sam", ".bam", ".bam.bai", ".fastq");
 my $frag=$ARGV[0];
+my $nuc=180;
+
 open (SAM, "<$ARGV[1]") || die "Could not open $ARGV[0]\n";
 
 my $file=basename($ARGV[0], @suffixlist);
@@ -14,8 +16,9 @@ my $file=basename($ARGV[0], @suffixlist);
 # my $nuc_file=$file."_Nuc.sam";
 
 open (NFR, ">>$ARGV[2]");
-open (NUC, ">> $ARGV[3]");
-open (DIST, ">>$ARGV[4]");
+open (NUC, ">>$ARGV[3]");
+open (OUT, ">>$ARGV[4]");
+open (DIST, ">>$ARGV[5]");
 
 while (<SAM>){
 
@@ -38,9 +41,14 @@ while (<SAM>){
 			print NFR $_."\n";
 			}
 			
-		else {
+		elsif (abs($tmp[8]) >= $nuc) {
 			
 			print NUC $_."\n";
+			}
+		
+		else {
+		
+			print OUT $_."\n";
 			}
 		}
 	}
