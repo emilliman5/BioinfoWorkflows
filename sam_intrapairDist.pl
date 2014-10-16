@@ -27,6 +27,7 @@ while (<SAM>){
 	if( $_=~/^\@/){
 		print NFR $_."\n";
 		print NUC $_."\n";
+		print OUT $_."\n";
 		}
 	else {
 	
