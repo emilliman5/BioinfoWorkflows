@@ -1,11 +1,16 @@
 GENOME="hg19"
-FRAG="180"	
-THREADS=8	
+PICARD="\${PICARD_DIR}"
+cutoff1=100
+cutoff2=-100
+THREADS=4	
 bin=10
 
 sickle={
-	exec """ sickle pe -t illumina -f $input1 -r $input2 -o $output1 -p $output2 -s $output3 """
-	
+	transform('sickle.fastq.gz', 'sickle.fastq.gz', 'single.fastq.gz'){
+		from('.fastq.gz','.fastq.gz'){
+			exec """ sickle pe -g -t sanger -f $input1 -r $input2 -o $output1 -p $output2 -s $output3 """
+			}	
+		}
 	}			
 
 cutAdapt = {
@@ -16,53 +21,58 @@ cutAdapt = {
 	}
 	
 bowtie2 = {
-	transform('.fastq.gz') to('bowtie2_N1_' + GENOME + '.sam'){
-		exec """bowtie2 GENOME -1 $input1 -2 $input2 -X 2000 -N 1 -p $THREADS --no-unal --dovetail --no-mixed 
-		--no-discordant -S $output1"""
+	transform('bowtie2_N1_' + GENOME + '.sam'){
+		from(".fastq.gz", ".fastq.gz"){
+			exec """bowtie2 ${GENOME} -1 $input1 -2 $input2 -X 2000 -N 1 -p $THREADS --no-unal --dovetail --no-mixed 
+			--no-discordant -S $output"""
+			}
 		}
 	}
 	
 deDupe = {
-	transform("dedupe"+."bam", "metrics"+'.txt'){
-		java -Xmx2g -jar ${PATH_TO_PICARD}/MarkDuplicates.jar 
-		INPUT=$input.bam
+	transform('dedupe'+'.bam', 'metrics'+'.txt'){
+		exec """java -Xmx2g -jar ${PICARD}/MarkDuplicates.jar
+		INPUT=$input
 		OUTPUT=$output1
 		METRICS_FILE=$output2
 		REMOVE_DUPLICATES=true
-		ASSUME_SORTED=true
+		ASSUME_SORTED=true	"""
 		}
 	}
 	
 FASTQC = {
-			exec "~/bin/FastQC/fastqc -t $THREADS $input"
-			forward input
+		exec "~/bin/FastQC/fastqc -t $THREADS $input"
+	}
+
+samSplit={
+	filter('NFR', 'NUC'){
+		
+		exec """head -n 27 $input > $output1 """
+		exec """awk '{ if((\$9 <=$cutoff1) && (\$9>=$cutoff2)){ print \$0 >> "$output1"} else print \$0 >> "$output2" }' $input	"""
+		}
 	}
 
 samToBam = {
 	transform('.bam'){
-		exec """ samtools view -bS $inputs.sam | samtools sort - $output.prefix """
+		exec """ samtools view -bS $input.sam | samtools sort - $output.prefix"""
 		}	
 	}
 
 index = {
-
 	exec "samtools index $input"
 	forward input
-	
 }
 
 coverage = {
 	transform('.bigWig'){
-		exec """bamCoverage -b $input -bs $bin -p 8 -o $output --ignoreDuplicates --normalizeTo1x 2451960000"""
+		exec """bamCoverage -b $input.bam -bs $bin -p 2 -o $output --ignoreDuplicates --normalizeTo1x 2451960000"""
 		}
 	}
 	
-
 intraMateDist = {
-		transform('NFR'+'.sam', 'NUC'+'.sam', 'intraMate_Dist'+'.txt'){
-			exec """perl ~/scripts/sam_intraPairDist.pl FRAG $input.sam $output1 $output2 $output3"""
-			forward input
+		transform("FragLength"+'.txt'){
+			exec """ cut -f9 $input > $output
 		}
 	}
 	
-Bpipe.run { "%.fastq" * [cutAdapt] + sickle + bowtie2 + [FASTQC, intraMateDist] + "%.sam" * [samToBam + dedupe + index + coverage] }
+Bpipe.run { "%.fastq" * [cutAdapt] + sickle + bowtie2 + [FASTQC,samSplit, intraMateDist] + "%.sam" * [samToBam + deDupe + index + coverage] }
