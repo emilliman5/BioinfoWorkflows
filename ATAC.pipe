@@ -89,4 +89,4 @@ FragLengthDist = {
 	}
 		
 	
-Bpipe.run { "%.fastq" * [cutAdapt] + sickle + bowtie2 + [FASTQC,samSplit, intraMateDist + FragLengthDist] + "%.sam" * [samToBam + deDupe + index + coverage] }
+Bpipe.run { "%.fastq" * [cutAdapt] + sickle + bowtie2 + [FASTQC,samSplit, intraMateDist] + "%.sam" * [samToBam + deDupe + index + coverage] }
