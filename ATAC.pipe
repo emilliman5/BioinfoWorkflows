@@ -80,4 +80,12 @@ Histogram ={
 		}
 	}	
 	
+FileSplit={
+	exec """split -n 4 $input"""
+	}
+	
+FileCat={
+	exec """cat $inputs > $outputs"""
+	}
+	
 Bpipe.run { "%.sanger.fastq" * [cutAdapt] + sickle + bowtie2 + [FASTQC, samSplit, intraMateDist + Histogram] + "%.sam" * [samToBam + deDupe + index + coverage] }
