@@ -80,4 +80,4 @@ Histogram ={
 		}
 	}	
 	
-Bpipe.run { "%.fastq" * [cutAdapt] + sickle + bowtie2 + [FASTQC,samSplit, intraMateDist + Histogram] + "%.sam" * [samToBam + deDupe + index + coverage] }
+Bpipe.run { "%.sanger.fastq" * [cutAdapt] + sickle + bowtie2 + [FASTQC,samSplit, intraMateDist + Histogram] + "%.sam" * [samToBam + deDupe + index + coverage] }
