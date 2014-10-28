@@ -88,4 +88,11 @@ FileCat={
 	exec """cat $inputs > $outputs"""
 	}
 	
+removeExt={
+	exec """ mv $input 
+	
+	"""
+
+	}
+	
 Bpipe.run { "%.sanger.fastq" * [cutAdapt] + sickle + bowtie2 + [FASTQC, samSplit, intraMateDist + Histogram] + "%.sam" * [samToBam + deDupe + index + coverage] }
