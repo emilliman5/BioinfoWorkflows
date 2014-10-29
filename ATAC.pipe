@@ -64,7 +64,7 @@ index = {
 }
 
 coverage = {
-	transform('1xGenCov.bigWig'){
+	transform('1xGenCov.bigwig'){
 		exec """bamCoverage -b $input.bam -bs $bin -p 2 -o $output --ignoreDuplicates --normalizeTo1x 2451960000"""
 		}
 	}
