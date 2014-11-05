@@ -23,7 +23,7 @@ cutAdapt = {
 bowtie2 = {
 	transform('bowtie2_N1_' + GENOME + '.sam'){
 		from(".fastq.gz", ".fastq.gz"){
-			exec """bowtie2 ${GENOME} -1 $input1 -2 $input2 -X 2000 -N 1 -p $THREADS --no-unal --dovetail --no-mixed 
+			exec """bowtie2 ${GENOME} -1 $input1 -2 $input2 -X 2000 -N 1 -p $THREADS --no-unal --no-mixed 
 			--no-discordant -S $output"""
 			}
 		}
@@ -53,10 +53,10 @@ FASTQC = {
 	}
 
 samSplit={
-	filter('NFR', 'NUC'){
+	filter('NFR', 'NUC', 'MISC'){
 		
 		exec """head -n 27 $input > $output1 """
-		exec """awk '{ if((\$9 <=$cutoff1) && (\$9>=$cutoff2)){ print \$0 >> "$output1"} else print \$0 >> "$output2" }' $input	"""
+		exec """awk '{ if(\$9 <=$cutoff1 && \$9>=$cutoff2){ print \$0 >> "$output1"} else if((\$9 <=250 && \$9>=150) || (\$9 <=-150 && \$9>=-250)){ print \$0 >> "$output2"} else print \$0 >> "$output3" }' $input	"""
 		}
 	}
 
@@ -72,8 +72,9 @@ index = {
 }
 
 coverage = {
-	transform('1xGenCov.bigwig'){
-		exec """bamCoverage -b $input.bam -bs $bin -p 2 -o $output --ignoreDuplicates --normalizeTo1x 2451960000"""
+	transform('bs10_1xGenCov.bigwig','bs10_RPKM_Isite.bigwig'){
+		exec """bamCoverage -b $input.bam -bs $bin -p 2 -o $output1  --normalizeTo1x 2451960000"""
+		exec """bamCoverage -b $input.bam -bs $bin -p 2 -o $output2  -f 5 --normalizeUsingRPKM --doNotExtendPairedEnds"""
 		}
 	}
 	
@@ -82,6 +83,7 @@ intraMateDist = {
 			exec """ cut -f9 $input > $output"""
 		}
 	}
+	
 Histogram ={
 	transform('.png.'){
 		exec """ ~/scripts/fraglength.R $input.txt $output """
