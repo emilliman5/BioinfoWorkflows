@@ -23,7 +23,7 @@ cutAdapt = {
 bowtie2 = {
 	transform('bowtie2_N1_' + GENOME + '.sam'){
 		from(".fastq.gz", ".fastq.gz"){
-			exec """bowtie2 ${GENOME} -1 $input1 -2 $input2 -X 2000 -N 1 -p $THREADS --no-unal --no-mixed 
+			exec """bowtie2 ${GENOME} -1 $input1 -2 $input2 -X 2000 -N 1 -p $THREADS --no-unal --no-mixed --dovetail
 			--no-discordant -S $output"""
 			}
 		}
@@ -32,7 +32,7 @@ bowtie2 = {
 bowtie = {
 	transform('bowtie2_N1_' + GENOME + '.sam'){
 		from(".fastq.gz", ".fastq.gz"){
-			exec """bowtie ${GENOME} -1 $input1 -2 $input2 -X 2000 -m 1 -p $THREADS -S --al $output"""
+			exec """bowtie ${GENOME} -1 $input1 -2 $input2 -X 2000 -n 1 -m 1 -p $THREADS -S --al $output """
 			}
 		}
 	}
