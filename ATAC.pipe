@@ -30,9 +30,9 @@ bowtie2 = {
 	}
 	
 bowtie = {
-	transform('bowtie2_N1_' + GENOME + '.sam'){
+	transform('bowtie1_N1_' + GENOME + '.sam',"unaligned.fastq" ){
 		from(".fastq.gz", ".fastq.gz"){
-			exec """bowtie ${GENOME} -1 $input1 -2 $input2 -X 2000 -n 1 -m 1 -p $THREADS -S --al $output """
+			exec """bowtie ${GENOME} -1 $input1 -2 $input2 $output -X 2000 -v 2 -m 1 -p $THREADS -S"""
 			}
 		}
 	}
