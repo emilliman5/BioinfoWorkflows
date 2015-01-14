@@ -10,6 +10,7 @@
 import argparse
 import imp
 import os
+import gzip
 import multiprocessing
 from deeptools import parserCommon ## contains many of the option flags for heatmapper and profiler
 hmScript=imp.load_source('hmScript', '/home/millimanej/workspace/deepTools/bin/heatmapper')
@@ -39,6 +40,15 @@ if batch_args.hh:
     exit
 
 files=batch_args.files
+longest=0
+lines={}
+
+def z_values(matrixDict)
+    matrixFlatten = np.concatenate([x for x in matrixDict.values()]).flatten()
+    if batch_args.zMax < np.percentile(matrixFlatten, 98.0):
+        batch_args.zMax = np.percentile(matrixFlatten, 98.0)
+        batch_args.zMin = np.percentile(matrixFlatten, 1.0)
+    matrixFlatten[np.isnan(matrixFlatten) == False]    
 
 def heatmap(f):
     
@@ -66,6 +76,13 @@ def heatmap(f):
 def mp_handler():
     p=multiprocessing.Pool(batch_args.p)
     p.map(heatmap, files)
+    
+for f in files:
+    with gzip.open(f, 'rb') as infile:
+        content=infile.read.lines()
+    longest=len(content) if len(content > length)
+    lines[f]=len(content)
+    
     
 if __name__ == '__main__':
     mp_handler()
