@@ -15,27 +15,53 @@
 #call heatmapper or profiler and render plots (parallelize)
 #put all plots into a new subdirectory
 
-# 1.    Write a python script that executes heatmapper/profiler
 # 2.    Write a python script that will execute heatmapper over a list of files
-# 3.    Write a python script that will take arguments to pass to heatmapper
+            
 # 4.    Write a python script that will extract values from heatmapper before executing
 
     
-from sys import argv
+import argparse
 import imp
+import os
 from deeptools import parserCommon ## contains all of the option flags for heatmapper and profiler
 from deeptools import heatmapper    ## should be able to classes/methods to determine some parameters
 hmScript=imp.load_source('hmScript', '/home/millimanej/workspace/deepTools/bin/heatmapper')
 
-script, input_file=argv
-zMx=10
+parser=argparse.ArgumentParser(description="Process matrix files into heatmaps in batch")
+parser.add_argument("-f","--files", nargs='+', help="list of matrices to be processed in batch")
+parser.add_argument("-zMx", type=float, help="Maximum value for heatmap intensities (for all matrices)", default=0)
+parser.add_argument("--ext", choices=["png","pdf","eps","svg","emf"], default="png")
+parser.add_argument("--prefix", default="", help="prefix for outfiles")
+parser.add_argument("--suffix", default="", help="suffix for outfiles (not the extension")
+batch_args=parser.parse_args()
 
-#for i in range(input_file):
+if batch_args.zMx == 0:
+    #retrieve largest z-value (heatmap color intensity) from list of files and set zMax to that.
+    #this will not be trivial... zMax is determined during the plot function call. heatmapper will
+    #need to be tweaked to accomplish this
+    batch_args.zMx=""   
+
+print batch_args.files
+
+for f in batch_args.files:
     
-args=hmScript.parseArguments(matrixfile=input_file, zMax=zMx, outfile="test_out.png")
-hmScript.main(args)
+    outfile = os.path.splitext(f)[0]
+    if batch_args.suffix:    
+        outfile=outfile+"."+batch_args.suffix
+    
+    if batch_args.prefix:
+        outfile=batch_args.prefix+outfile
+
+    outfile=outfile+"."+batch_args.ext
+    print "Matrix file: "+outfile
+    
+    args = hmScript.parseArguments(['-m', f,'-o', outfile])
+    
+    if batch_args.zMx:
+        args.zMax=batch_args.zMx
+   
+    hmScript.main(args)
 
 
-print "I have run the deeptools heatmapper script from my batch script"
 
 
