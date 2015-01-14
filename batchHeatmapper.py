@@ -51,14 +51,17 @@ def z_values(matrixDict)
     matrixFlatten[np.isnan(matrixFlatten) == False]    
 
 def heatmap(f):
-    
     outfile = os.path.splitext(f)[0]
-    if batch_args.suffix:
-        outfile=outfile+"."+batch_args.suffix
+    
+    def outfileEdit(outfile):
+        if batch_args.suffix:
+            outfile=outfile+"."+batch_args.suffix    
+        if batch_args.prefix:
+            outfile=batch_args.prefix+outfile
 
-    if batch_args.prefix:
-        outfile=batch_args.prefix+outfile
-
+    if batch_args.suffix | batch_args.prefix:
+        outFileEdit(outfile)
+   
     outfile=outfile+"."+batch_args.ext
     
     if batch_args.hf:
