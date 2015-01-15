@@ -59,7 +59,7 @@ def heatmap(f):
         if batch_args.prefix:
             outfile=batch_args.prefix+outfile
 
-    if batch_args.suffix | batch_args.prefix:
+    if batch_args.suffix:
         outFileEdit(outfile)
    
     outfile=outfile+"."+batch_args.ext
