@@ -12,12 +12,14 @@ import imp
 import os
 import gzip
 import multiprocessing
+from numpy import percentile, concatenate
 from deeptools import parserCommon ## contains many of the option flags for heatmapper and profiler
 hmScript=imp.load_source('hmScript', '/home/millimanej/workspace/deepTools/bin/heatmapper')
 
 parser=argparse.ArgumentParser(description="Batch process matrix files into heatmaps using deepTools heatmapper")
 parser.add_argument("-f","--files", nargs='+', help="list of matrices to be processed in batch")
-parser.add_argument("--zMax", type=float, help="Maximum value for heatmap intensities (for all matrices)", default=0)
+parser.add_argument("--zMax", type=float, help="Maximum value for heatmap intensities and profile (for all matrices)", default=0)
+parser.add_argument("--zMin", type=float, help="Minimum value for heatmap intensities and profile (for all matrices)", default=0)
 parser.add_argument("--ext", choices=["png","pdf","eps","svg","emf"], default="png", help="Specifies filetype for heatmap image")
 parser.add_argument("--prefix", default="", help="string to prepend outfile filenames")
 parser.add_argument("--suffix", default="", help="string to append to outfile names")
@@ -38,17 +40,19 @@ if batch_args.hh:
     args = hmScript.parseArguments(['--help'])
     hmScript.main(args)
     exit
-
+zMax= 1 if batch_args.zMax else 0
 files=batch_args.files
 longest=0
 lines={}
 
 def z_values(matrixDict):
-    matrixFlatten = np.concatenate([x for x in matrixDict.values()]).flatten()
-    if batch_args.zMax < np.percentile(matrixFlatten, 98.0):
-        batch_args.zMax = np.percentile(matrixFlatten, 98.0)
-        batch_args.zMin = np.percentile(matrixFlatten, 1.0)
-    matrixFlatten[np.isnan(matrixFlatten) == False]    
+    matrixFlatten = numpy.concatenate([x for x in matrixDict.values()]).flatten()
+    if batch_args.zMax < numpy.percentile(matrixFlatten, 98.0):
+        batch_args.zMax = numpy.percentile(matrixFlatten, 98.0)
+    if batch_args.zMin < numpy.percentile(matrixFlatten, 1.0):
+        batch_args.zMin = numpy.percentile(matrixFlatten, 1.0)
+    matrixFlatten[numpy.isnan(matrixFlatten) == False]
+    return
 
 def heatmap(f):
     outfile = os.path.splitext(f)[0]
@@ -73,6 +77,8 @@ def heatmap(f):
     if batch_args.zMax:
         args.zMax=batch_args.zMax
         args.yMax=batch_args.zMax ## the profile atop the heatmaps should be on the same scale as the heatmap intenisites
+        args.zMin=batch_args.zMin
+        args.yMin=batch_args.zMin
     
     hmScript.main(args)
 
@@ -85,8 +91,9 @@ for f in files:
         content=infile.read()
     longest=len(content) if len(content) > longest else longest
     lines[f]=len(content)
-    content=""
-    
+    if not zMax:
+      z_vaules(content)
+ 
 if __name__ == '__main__':
     mp_handler()
 
