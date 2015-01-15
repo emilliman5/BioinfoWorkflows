@@ -43,7 +43,7 @@ files=batch_args.files
 longest=0
 lines={}
 
-def z_values(matrixDict)
+def z_values(matrixDict):
     matrixFlatten = np.concatenate([x for x in matrixDict.values()]).flatten()
     if batch_args.zMax < np.percentile(matrixFlatten, 98.0):
         batch_args.zMax = np.percentile(matrixFlatten, 98.0)
@@ -82,10 +82,10 @@ def mp_handler():
     
 for f in files:
     with gzip.open(f, 'rb') as infile:
-        content=infile.read.lines()
-    longest=len(content) if len(content > length)
+        content=infile.read()
+    longest=len(content) if len(content) > longest else longest
     lines[f]=len(content)
-    
+    content=""
     
 if __name__ == '__main__':
     mp_handler()
