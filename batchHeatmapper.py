@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 #python wrapper for deeptools heatmapper (profiler will be next)
 #
 #ToDo:  Sanity check direct-passthrough arguments to heatmapper (everything captured by -hf)
@@ -10,8 +12,8 @@ import imp
 import os
 import gzip
 import multiprocessing
-#from numpy import percentile, concatenate
-#from deeptools import parserCommon ## contains many of the option flags for heatmapper and profiler
+from numpy import percentile, concatenate
+from deeptools import parserCommon ## contains many of the option flags for heatmapper and profiler
 hmScript=imp.load_source('hmScript', '/home/millimanej/workspace/deepTools/bin/heatmapper')
 
 parser=argparse.ArgumentParser(description="Batch process matrix files into heatmaps using deepTools heatmapper")
@@ -74,7 +76,7 @@ def heatmap(f):
         args = hmScript.parseArguments(['-m', f,'-o', outfile])
 
     if batch_args.zMax:
-        args.zMax=batch_args.zMax
+        args.zMax=batch_args.zMax*0.9
         args.yMax=batch_args.zMax ## the profile atop the heatmaps should be on the same scale as the heatmap intenisites
         args.zMin=batch_args.zMin
         args.yMin=batch_args.zMin
