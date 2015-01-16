@@ -1,12 +1,16 @@
 #!/usr/bin/env python
 
-#python wrapper for deeptools heatmapper (profiler will be next)
-#
+#python wrapper for deeptools heatmapper
+#Copyright 2015 Eric Milliman
+#National Institutes of Environmental Health Sciences
+
 #ToDo:  Sanity check direct-passthrough arguments to heatmapper (everything captured by -hf)
 #       Test multithreading, conflicting arguments got me stuck in an endless array of child processes
 #       Add heatmap scaling: i.e. if region_set1  is 2000 features and region_set 2 is 1000 features the heatmap
 #           of region_set2 should be half the size of regioin_set1
 #       Dynamically extract highest intensity values (zMax) to be used across all matrix files
+#       multi word passthrough arguments need to be quoted on the command line otherwise they get parsed as seperate arguments
+
 import argparse
 import imp
 import os
@@ -77,9 +81,11 @@ def heatmap(f):
 
     if batch_args.zMax:
         args.zMax=batch_args.zMax*0.9
-        args.yMax=batch_args.zMax ## the profile atop the heatmaps should be on the same scale as the heatmap intenisites
+        #args.yMax=batch_args.zMax ## the profile atop the heatmaps should be on the same scale as the heatmap intenisites
         args.zMin=batch_args.zMin
-        args.yMin=batch_args.zMin
+        #args.yMin=batch_args.zMin
+        
+    args.heatmapHeight=(float(lines[f])/float(longest))*25
     
     hmScript.main(args)
 
@@ -87,11 +93,12 @@ def mp_handler():
     p=multiprocessing.Pool(batch_args.p)
     p.map(heatmap, files)
     
-#for f in files:
-#    with gzip.open(f, 'rb') as infile:
-#         content= [line.strip().split("\t") for line in f.readlines()]
-#    longest=len(content) if len(content) > longest else longest
-#    lines[f]=len(content)
+for f in files:
+    with gzip.open(f, 'rb') as infile:
+         content= [line.strip().split("\t") for line in infile.readlines()]
+    longest=len(content) if len(content) > longest else longest
+    lines[f]=len(content)
+
 #    #if not zMax:
 #    #  z_vaules(content)
  
