@@ -16,6 +16,8 @@ import imp
 import os
 import gzip
 import multiprocessing
+import signal
+import time
 from numpy import percentile, concatenate
 from deeptools import parserCommon ## contains many of the option flags for heatmapper and profiler
 hmScript=imp.load_source('hmScript', '/home/millimanej/workspace/deepTools/bin/heatmapper')
@@ -89,9 +91,32 @@ def heatmap(f):
     
     hmScript.main(args)
 
+def init_worker():
+    signal.signal(signal.SIGINT, signal.SIG_IGN)
+    
 def mp_handler():
-    p=multiprocessing.Pool(batch_args.p)
-    p.map(heatmap, files)
+    print "Initializng",
+    print batch_args.p,
+    print "workers"
+    pool = multiprocessing.Pool(batch_args.p, init_worker)
+    pool.apply_async(heatmap, files)
+
+    try:
+        print "Waiting 10 seconds"
+        time.sleep(10)
+
+    except KeyboardInterrupt:
+        print "Caught KeyboardInterrupt, terminating workers"
+        pool.terminate()
+        pool.join()
+
+    else:
+        print "Quitting normally"
+        pool.close()
+        pool.join()
+
+    #p=multiprocessing.Pool(batch_args.p)
+    #p.map(heatmap, files)
     
 for f in files:
     with gzip.open(f, 'rb') as infile:
