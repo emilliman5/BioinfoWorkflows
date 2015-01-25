@@ -98,22 +98,22 @@ def mp_handler():
     print "Initializng",
     print batch_args.p,
     print "workers"
-    pool = multiprocessing.Pool(batch_args.p, init_worker)
-    pool.apply_async(heatmap, files)
+    pool = multiprocessing.Pool(batch_args.p)#, init_worker)
+    pool.map(heatmap, files)
 
-    try:
-        print "Waiting 10 seconds"
-        time.sleep(10)
+    #try:
+    #    print "Waiting 10 seconds"
+    #    time.sleep(10)
+    #
+    #except KeyboardInterrupt:
+    #    print "Caught KeyboardInterrupt, terminating workers"
+    #    pool.terminate()
+    #    pool.join()
 
-    except KeyboardInterrupt:
-        print "Caught KeyboardInterrupt, terminating workers"
-        pool.terminate()
-        pool.join()
-
-    else:
-        print "Quitting normally"
-        pool.close()
-        pool.join()
+    #else:
+    #    print "Quitting normally"
+    #    pool.close()
+    #    pool.join()
 
     #p=multiprocessing.Pool(batch_args.p)
     #p.map(heatmap, files)
