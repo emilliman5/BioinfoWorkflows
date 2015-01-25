@@ -6,7 +6,7 @@ THREADS=4
 bin=10
 
 sickle={
-	transform('sickle.fastq.gz', 'sickle.fastq.gz', 'single.fastq.gz'){
+	transform('sickle.fastq', 'sickle.fastq', 'single.fastq'){
 		from('.fastq.gz','.fastq.gz'){
 			exec """ sickle pe -g -t sanger -f $input1 -r $input2 -o $output1 -p $output2 -s $output3 """
 			}	
@@ -14,7 +14,7 @@ sickle={
 	}			
 
 cutAdapt = {
-	transform('cutAdapt'+'.fastq'+'.gz'){
+	transform('cutAdapt'+'.fastq'){
 	
 		exec """ cutadapt -a CTGTCTCTTATA $input -o $output"""
 		}
@@ -30,9 +30,9 @@ bowtie2 = {
 	}
 	
 bowtie = {
-	transform('bowtie1_N1_' + GENOME + '.sam',"unaligned.fastq" ){
+	transform('bowtie1_N1_' + GENOME + '.sam'){
 		from(".fastq.gz", ".fastq.gz"){
-			exec """bowtie ${GENOME} -1 $input1 -2 $input2 $output -X 2000 -v 2 -m 1 -p $THREADS -S"""
+			exec """bowtie ${GENOME} -1 $input1 -2 $input2 -S $output -X 2000 -v 2 -m 1 -p $THREADS -S --un unmapped_reads.fastq"""
 			}
 		}
 	}
@@ -90,4 +90,4 @@ Histogram ={
 		}
 	}	
 	
-Bpipe.run { "%.sanger.fastq" * [cutAdapt] + sickle + bowtie + [FASTQC, samSplit, intraMateDist + Histogram] + "%.sam" * [samToBam + deDupe + index + coverage] }
+Bpipe.run { "%.fastq" * [cutAdapt] + sickle + bowtie + [FASTQC, samSplit, intraMateDist + Histogram] + "%.sam" * [samToBam + deDupe + index + coverage] }
