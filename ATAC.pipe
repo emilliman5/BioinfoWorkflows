@@ -24,15 +24,7 @@ bowtie2 = {
 	transform('bowtie2_N1_' + GENOME + '.sam'){
 		from(".fastq.gz", ".fastq.gz"){
 			exec """bowtie2 ${GENOME} -1 $input1 -2 $input2 -X 2000 -N 1 -p $THREADS --no-unal --no-mixed --dovetail
-			--no-discordant -S $output"""
-			}
-		}
-	}
-	
-bowtie = {
-	transform('bowtie1_N1_' + GENOME + '.sam'){
-		from(".fastq.gz", ".fastq.gz"){
-			exec """bowtie ${GENOME} -1 $input1 -2 $input2 -S $output -X 2000 -v 2 -m 1 -p $THREADS -S --un unmapped_reads.fastq"""
+			--no-discordant -S $output -k 2 """
 			}
 		}
 	}
@@ -47,7 +39,12 @@ deDupe = {
 		ASSUME_SORTED=true	"""
 		}
 	}
-	
+samFilter={
+	filter("filter"){
+		
+		}
+	}
+}
 FASTQC = {
 		exec "~/bin/FastQC/fastqc -t $THREADS $input"
 	}
