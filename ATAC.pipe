@@ -6,7 +6,7 @@ THREADS=4
 bin=10
 
 sickle={
-	transform('sickle.fastq', 'sickle.fastq', 'single.fastq'){
+	transform('sickle.fastq.gz', 'sickle.fastq.gz', 'single.fastq.gz'){
 		from('.fastq.gz','.fastq.gz'){
 			exec """ sickle pe -g -t sanger -f $input1 -r $input2 -o $output1 -p $output2 -s $output3 """
 			}	
@@ -14,7 +14,7 @@ sickle={
 	}			
 
 cutAdapt = {
-	transform('cutAdapt'+'.fastq'){
+	transform('cutAdapt'+'.fastq.gz'){
 	
 		exec """ cutadapt -a CTGTCTCTTATA $input -o $output"""
 		}
@@ -23,8 +23,8 @@ cutAdapt = {
 bowtie2 = {
 	transform('bowtie2_N1_' + GENOME + '.sam'){
 		from(".fastq.gz", ".fastq.gz"){
-			exec """bowtie2 ${GENOME} -1 $input1 -2 $input2 -X 2000 -N 1 -p $THREADS --no-unal --no-mixed --dovetail
-			--no-discordant -S $output -k 2 """
+			exec """bowtie2 -x ${GENOME} -1 $input1 -2 $input2 -X 2000 -N 1 -p $THREADS --no-unal --no-mixed --dovetail
+			--no-discordant -S $output --un-conc unmapped_reads.fastq.gz"""
 			}
 		}
 	}
@@ -41,10 +41,11 @@ deDupe = {
 	}
 samFilter={
 	filter("filter"){
-		
+		exec """ samtools view -hS -F 4  $input | grep -v "chrM" | ~/scripts unique_read_filter.py > $output """
+		exec """ """
 		}
 	}
-}
+
 FASTQC = {
 		exec "~/bin/FastQC/fastqc -t $THREADS $input"
 	}
@@ -53,6 +54,7 @@ samSplit={
 	filter('NFR', 'NUC', 'MISC'){
 		
 		exec """head -n 27 $input > $output1 """
+		exec """head -n 27 $input > $output2 """
 		exec """awk '{ if(\$9 <=$cutoff1 && \$9>=$cutoff2){ print \$0 >> "$output1"} else if((\$9 <=250 && \$9>=150) || (\$9 <=-150 && \$9>=-250)){ print \$0 >> "$output2"} else print \$0 >> "$output3" }' $input	"""
 		}
 	}
@@ -87,4 +89,4 @@ Histogram ={
 		}
 	}	
 	
-Bpipe.run { "%.fastq" * [cutAdapt] + sickle + bowtie + [FASTQC, samSplit, intraMateDist + Histogram] + "%.sam" * [samToBam + deDupe + index + coverage] }
+Bpipe.run { "%.fastq" * [cutAdapt] + sickle + bowtie2 + samFilter+ [samSplit, intraMateDist + Histogram] + "%.sam" * [samToBam + deDupe + index + coverage] }
