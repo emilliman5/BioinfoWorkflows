@@ -15,12 +15,12 @@ for line in f :
 
     if(last_read == None): 
         last_read = line
-        if(re.split(':',line[13])[0] == "XS" & re.split(':',line[12])[2] == re.split(':',line[13])[2]):
+        if(re.split(':',line[13])[0] == "XS" and int(re.split(':',line[12])[2]) == int(re.split(':',line[13])[2])):
             XS=1
         
     else :
         if(last_read[0] == line[0]):    
-            if(XS==1 & re.split(':',line[13])[0] =="XS" & XS==0 & re.split(':',line[12])[2] == re.split(':',line[13])[2]):
+            if(XS==1 and re.split(':',line[13])[0] =="XS" and XS==0 & int(re.split(':',line[12])[2]) == int(re.split(':',line[13])[2])):
                 last_read = None
                 XS=0 
                 
@@ -32,5 +32,5 @@ for line in f :
         else :
             last_read = line
             XS=0
-            if(re.split(':',line[13])[0] == "XS" & re.split(':',line[12])[2] == re.split(':',line[13])[2]):
+            if(re.split(':',line[13])[0] == "XS" and int(re.split(':',line[12])[2]) == int(re.split(':',line[13])[2])):
                 XS=1
