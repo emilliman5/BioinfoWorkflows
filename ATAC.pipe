@@ -41,8 +41,7 @@ deDupe = {
 	}
 samFilter={
 	filter("filter"){
-		exec """ samtools view -hS -F 4  $input | grep -v "chrM" | ~/scripts unique_read_filter.py > $output """
-		exec """ """
+		exec """grep -v "chrM" $input | ~/scripts/unique_read_filter.py > $output """
 		}
 	}
 
