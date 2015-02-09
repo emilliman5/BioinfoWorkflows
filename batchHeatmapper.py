@@ -6,8 +6,6 @@
 
 #ToDo:  Sanity check direct-passthrough arguments to heatmapper (everything captured by -hf)
 #       Test multithreading, conflicting arguments got me stuck in an endless array of child processes
-#       Add heatmap scaling: i.e. if region_set1  is 2000 features and region_set 2 is 1000 features the heatmap
-#           of region_set2 should be half the size of regioin_set1
 #       Dynamically extract highest intensity values (zMax) to be used across all matrix files
 #       multi word passthrough arguments need to be quoted on the command line otherwise they get parsed as seperate arguments
 
@@ -33,7 +31,9 @@ parser.add_argument("-hh", action="store_true", help="Equivalent to: heatmapper 
 parser.add_argument("-p",type=int, help="Number of processers to disrisbute heatmapper across", default=1)
 parser.add_argument('-hf', help="Extra heatmapper flags: string of flags and values to be passed "
                     "directly to the heatmapper script for all matrix files; Must be last argument"
-                    "on command-line. WARNING: There is no sanity check for the flags passed directly to heatmapper"
+                    "on command-line. WARNING: There is no sanity check for the flags passed directly to heatmapper."
+                    "Multiword need to be quoted, otherwise they get parsed as seperate arguments. This is a hacky workaround to passthrough arguments"
+                    "and may result in your files catching fire..."
                     , nargs=argparse.REMAINDER) ##Hacky pass-through of arguments into heatmapper; there is currently
                     #no sanity check and conflicting parameters causes problems with the multiprocessing.
 
