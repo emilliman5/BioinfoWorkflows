@@ -22,18 +22,16 @@ cutAdapt = {
 	
 bowtie2 = {
 	transform('bowtie2_N1_' + GENOME + '.sam'){
-		from(".fastq", ".fastq"){
-			exec """bowtie2 ${GENOME} -1 $input1 -2 $input2 -X 2000 -N 1 -p $THREADS --no-unal --no-mixed --dovetail
-			--no-discordant -S $output"""
+		from(".fastq.gz", ".fastq.gz"){
+			exec """bowtie2 -x ${GENOME} -1 $input1 -2 $input2 -X 2000 -N 1 -p $THREADS --no-unal --no-mixed --dovetail
+			--no-discordant -S $output --un-conc unmapped_reads.fastq.gz"""
 			}
 		}
 	}
 	
-bowtie = {
-	transform('bowtie1_N1_' + GENOME + '.sam',"unaligned.fastq" ){
-		from(".fastq", ".fastq"){
-			exec """bowtie ${GENOME} -1 $input1 -2 $input2 $output -X 2000 -v 2 -m 1 -p $THREADS -S"""
-			}
+samFilter={
+	filter("filter"){
+		exec """grep -v "chrM" $input | ~/scripts/unique_read_filter.py > $output """
 		}
 	}
 	
@@ -52,14 +50,6 @@ FASTQC = {
 		exec "~/bin/FastQC/fastqc -t $THREADS $input"
 	}
 
-samSplit={
-	filter('NFR', 'NUC', 'MISC'){
-		
-		exec """head -n 27 $input > $output1 """
-		exec """awk '{ if(\$9 <=$cutoff1 && \$9>=$cutoff2){ print \$0 >> "$output1"} else if((\$9 <=250 && \$9>=150) || (\$9 <=-150 && \$9>=-250)){ print \$0 >> "$output2"} else print \$0 >> "$output3" }' $input	"""
-		}
-	}
-
 samToBam = {
 	transform('.bam'){
 		exec """ samtools view -bS $input.sam | samtools sort - $output.prefix"""
@@ -74,7 +64,7 @@ index = {
 coverage = {
 	transform('bs10_1xGenCov.bigwig','bs10_RPKM_Isite.bigwig'){
 		exec """bamCoverage -b $input.bam -bs $bin -p 2 -o $output1  --centerReads --normalizeTo1x 2451960000"""
-		exec """bamCoverage -b $input.bam -bs $bin -p 2 -o $output2  --centerReads -f 5 --normalizeUsingRPKM --doNotExtendPairedEnds"""
+		exec """bamCoverage -b $input.bam -bs $bin -p 2 -o $output2  --normalizeTo1x --doNotExtendPairedEnds"""
 		}
 	}
 	
@@ -90,4 +80,4 @@ Histogram ={
 		}
 	}	
 	
-Bpipe.run { "%.sanger.fastq" * [cutAdapt] + sickle + bowtie + [FASTQC, intraMateDist + Histogram, samToBam + deDupe + index + coverage] }
+Bpipe.run { "*.%.sanger.fastq" * [cutAdapt] + sickle + bowtie2 + samFilter + [FASTQC, intraMateDist + Histogram, samToBam + deDupe + index + coverage] }
