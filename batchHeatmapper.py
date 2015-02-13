@@ -50,6 +50,7 @@ if batch_args.hh:
 files=batch_args.files
 longest=0
 lines={}
+length={}
 
 #def z_values(matrixDict):
 #    matrixFlatten = numpy.concatenate([x for x in matrixDict.values()]).flatten()
@@ -83,52 +84,46 @@ def heatmap(f):
 
     if batch_args.zMax:
         args.zMax=batch_args.zMax*0.9
-        #args.yMax=batch_args.zMax ## the profile atop the heatmaps should be on the same scale as the heatmap intenisites
+        #args.yMax=batch_args.zMax                      # the profile atop the heatmaps should be on the same scale as the heatmap intenisites
         args.zMin=batch_args.zMin
         #args.yMin=batch_args.zMin
         
     args.heatmapHeight=(float(lines[f])/float(longest))*25
     
     hmScript.main(args)
-
-def init_worker():
-    signal.signal(signal.SIGINT, signal.SIG_IGN)
     
-def mp_handler():
-    print "Initializng",
+def mp_handler(files):
+    pool = multiprocessing.Pool(batch_args.p)
+    print "Initialized",
     print batch_args.p,
     print "workers"
-    pool = multiprocessing.Pool(batch_args.p)#, init_worker)
+    print type(files)
+    print files
     pool.map(heatmap, files)
 
-    #try:
-    #    print "Waiting 10 seconds"
-    #    time.sleep(10)
-    #
-    #except KeyboardInterrupt:
-    #    print "Caught KeyboardInterrupt, terminating workers"
-    #    pool.terminate()
-    #    pool.join()
-
-    #else:
-    #    print "Quitting normally"
-    #    pool.close()
-    #    pool.join()
-
-    #p=multiprocessing.Pool(batch_args.p)
-    #p.map(heatmap, files)
-    
-for f in files:
+def file_length(f):
+    d={}
     with gzip.open(f, 'rb') as infile:
-         content= [line.strip().split("\t") for line in infile.readlines()]
-    longest=len(content) if len(content) > longest else longest
-    lines[f]=len(content)
-
-#    #if not zMax:
-#    #  z_vaules(content)
+        content= [line.strip().split("\t") for line in infile.readlines()]
+    #d[f]=float(len(content))
+    return f,float(len(content))
+   
+def PPResults(alist):                                       #Parallel processing
+    results={}
+    d1={}
+    npool = multiprocessing.Pool(int(batch_args.p))    
+    res = npool.map_async(file_length, alist)
+    results=(res.get())                               #results returned in form of a list
+    d1=dict(results)
+    return d1
  
 if __name__ == '__main__':
-    mp_handler()
+    
+    lines.update(PPResults(files))
+    longest=max(lines.values())
+    mp_handler(files)
 
 
 
+
+   
