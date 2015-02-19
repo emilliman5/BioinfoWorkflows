@@ -46,7 +46,7 @@ if batch_args.hh:
     args = hmScript.parseArguments(['--help'])
     hmScript.main(args)
     exit
-#zMax= 1 if batch_args.zMax else 0
+
 files=batch_args.files
 longest=0
 lines={}
@@ -97,8 +97,6 @@ def mp_handler(files):
     print "Initialized",
     print batch_args.p,
     print "workers"
-    print type(files)
-    print files
     pool.map(heatmap, files)
 
 def file_length(f):
@@ -113,7 +111,7 @@ def PPResults(alist):                                       #Parallel processing
     d1={}
     npool = multiprocessing.Pool(int(batch_args.p))    
     res = npool.map_async(file_length, alist)
-    results=(res.get())                               #results returned in form of a list
+    results=(res.get())                                     #results returned in form of a list
     d1=dict(results)
     return d1
  
