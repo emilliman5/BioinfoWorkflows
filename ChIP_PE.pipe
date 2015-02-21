@@ -1,6 +1,5 @@
 GENOME="hg19"
-PICARD="\${PICARD_DIR}"
-THREADS=4	
+PICARD="\${PICARD_DIR}"	
 bin=10
 
 sickle={
@@ -21,7 +20,7 @@ cutAdapt = {
 bowtie2 = {
 	transform('bowtie2_N1_' + GENOME + '.sam'){
 		from(".fastq", ".fastq"){
-			exec """bowtie2 -x ${GENOME} -1 $input1 -2 $input2 -X 500 -N 1 -p $THREADS --no-unal --no-mixed --dovetail
+			exec """bowtie2 -x ${GENOME} -1 $input1 -2 $input2 -X 500 -N 1 -p $threads --no-unal --no-mixed --dovetail
 			--no-discordant -S $output --un-conc unmapped_reads.fastq.gz"""
 			}
 		}
@@ -45,7 +44,7 @@ deDupe = {
 	}
 	
 FASTQC = {
-		exec "~/bin/FastQC/fastqc -t $THREADS $input"
+		exec "~/bin/FastQC/fastqc -t $threads $input"
 	}
 
 samToBam = {
@@ -61,8 +60,8 @@ index = {
 
 coverage = {
 	transform('bs10_1xGenCov_centered.bigwig','bs10_1xGenCov.bigwig'){
-		exec """bamCoverage -b $input.bam -bs $bin -p 2 -o $output1  --centerReads --normalizeTo1x 2451960000"""
-		exec """bamCoverage -b $input.bam -bs $bin -p 2 -o $output2  --normalizeTo1x 2451960000"""
+		exec """bamCoverage -b $input.bam -bs $bin -p $((threads / 2)) -o $output1  --centerReads --normalizeTo1x 2451960000"""
+		exec """bamCoverage -b $input.bam -bs $bin -p $((threads / 2)) -o $output2  --normalizeTo1x 2451960000"""
 		}
 	}
 	
