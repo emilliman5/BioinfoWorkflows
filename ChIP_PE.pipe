@@ -1,6 +1,7 @@
 GENOME="hg19"
 PICARD="\${PICARD_DIR}"	
 bin=10
+THREAD="\$((threads/2))"
 
 sickle={
 	transform('sickle.fastq', 'sickle.fastq', 'single.fastq'){
@@ -55,13 +56,13 @@ samToBam = {
 
 index = {
 	exec "samtools index $input"
-	forward input
+	forward(input)
 }
 
 coverage = {
 	transform('bs10_1xGenCov_centered.bigwig','bs10_1xGenCov.bigwig'){
-		exec """bamCoverage -b $input.bam -bs $bin -p $((threads / 2)) -o $output1  --centerReads --normalizeTo1x 2451960000"""
-		exec """bamCoverage -b $input.bam -bs $bin -p $((threads / 2)) -o $output2  --normalizeTo1x 2451960000"""
+		multi 	"""bamCoverage -b $input.bam -bs $bin -p $THREAD -o $output1  --centerReads --normalizeTo1x 2451960000""",
+			"""bamCoverage -b $input.bam -bs $bin -p $THREAD -o $output2  --normalizeTo1x 2451960000"""
 		}
 	}
 	
