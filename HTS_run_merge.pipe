@@ -62,3 +62,4 @@ centeredCoverage={
 	    }
     }
     
+Bpipe.run { "%.bam" * [ sort + index ] + merge + dedupe + index + [ oneXcoverage, centeredCoverage ] }
