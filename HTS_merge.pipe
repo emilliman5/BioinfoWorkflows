@@ -4,7 +4,11 @@ THREADS="\$((threads/2))"
 
 mergeBam = {
     filter("merge"){
-        exec """ samtools merge -h $input1 $output $inputs """
+        exec """java -Xmx2g -jar ${PICARD}/MergeSamFiles.jar
+            INPUT=$inputs
+            OUTPUT=$output
+	    USE_THREADING=TRUE
+            ASSUME_SORTED=true	"""
         }
     }
 
