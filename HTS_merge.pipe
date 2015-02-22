@@ -1,16 +1,12 @@
 PICARD="\${PICARD_DIR}"	
 bin=10
-THREADS="\$((threads/2))"
+THREADS="\$(($threads/2))"
 
 mergeBam = {
     filter("merge"){
-        exec """java -Xmx2g -jar ${PICARD}/MergeSamFiles.jar
-            INPUT=$inputs
-            OUTPUT=$output
-	    USE_THREADING=TRUE
-            ASSUME_SORTED=true	"""
-        }
-    }
+        exec """samtools merge -h $input1 $output $inputs """
+	}
+     }
 
 indexBam = {
     exec """ samtools index $input """
