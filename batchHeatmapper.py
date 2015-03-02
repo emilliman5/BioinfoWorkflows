@@ -30,10 +30,10 @@ parser.add_argument("--suffix", default="", help="string to append to outfile na
 parser.add_argument("-hh", action="store_true", help="Equivalent to: heatmapper --help")
 parser.add_argument("-p",type=int, help="Number of processers to disrisbute heatmapper across", default=1)
 parser.add_argument('-hf', help="Extra heatmapper flags: string of flags and values to be passed "
-                    "directly to the heatmapper script for all matrix files; Must be last argument"
-                    "on command-line. WARNING: There is no sanity check for the flags passed directly to heatmapper."
-                    "Multiword arguments need to be quoted, otherwise they get parsed as seperate arguments by this script. This is a hacky workaround to passthrough arguments"
-                    "and may result in your files catching fire..."
+                    "directly to the heatmapper script for all matrix files; Must be last argument "
+                    "on command-line. WARNING: There is no sanity check for the flags passed directly to heatmapper. "
+                    "Multiword arguments need to be quoted, otherwise they get parsed as seperate arguments by this script. This is a hacky workaround to passthrough "
+                    "arguments and may result in your files catching fire..."
                     , nargs=argparse.REMAINDER) ##Hacky pass-through of arguments into heatmapper; there is currently
                     #no sanity check and conflicting parameters causes problems with the multiprocessing.
 
