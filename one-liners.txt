@@ -11,3 +11,6 @@ ls *.sam | parallel "samtools view -b -S {} | samtools sort - {.}; samtools inde
 
 ##Awk script to merge read pairs into one Bed entry
 awk '{ OFS="\t"; two = $2; getline; print $1,two,$3,$4,$5,$6}' infile > outfile
+
+##awk script to check if two adjacent lines have the same read group ID
+awk '{ split($4,id1,"/"); getline; split($4,id2,"/"); if (id1[1]!=id2[1]){ print id1[1],"\n",id2[1]} }' infile
