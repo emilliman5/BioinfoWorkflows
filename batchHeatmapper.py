@@ -16,14 +16,15 @@ import gzip
 import multiprocessing
 import signal
 import time
-from numpy import percentile, concatenate
+import numpy as np
 from deeptools import parserCommon ## contains many of the option flags for heatmapper and profiler
+from deeptools import heatmapper ##contains matrix handling 
 hmScript=imp.load_source('hmScript', '/home/millimanej/workspace/deepTools/bin/heatmapper')
 
 parser=argparse.ArgumentParser(description="Batch process matrix files into heatmaps using deepTools heatmapper")
 parser.add_argument("-f","--files", nargs='+', help="list of matrices to be processed in batch")
-parser.add_argument("--zMax", type=float, help="Maximum value for heatmap intensities and profile (for all matrices)", default=0)
-parser.add_argument("--zMin", type=float, help="Minimum value for heatmap intensities and profile (for all matrices)", default=0)
+parser.add_argument("--zMax", type=float, help="Maximum value for heatmap intensities and profile (for all matrices)", default=None)
+parser.add_argument("--zMin", type=float, help="Minimum value for heatmap intensities and profile (for all matrices)", default=None)
 parser.add_argument("--ext", choices=["png","pdf","eps","svg","emf"], default="png", help="Specifies filetype for heatmap image")
 parser.add_argument("--prefix", default="", help="string to prepend outfile filenames")
 parser.add_argument("--suffix", default="", help="string to append to outfile names")
@@ -51,16 +52,48 @@ files=batch_args.files
 longest=0
 lines={}
 length={}
+zMaxTest=0
+zMinTest=0
+zMxL={}
+zMnL={}
 
-#def z_values(matrixDict):
-#    matrixFlatten = numpy.concatenate([x for x in matrixDict.values()]).flatten()
-#    if batch_args.zMax < numpy.percentile(matrixFlatten, 98.0):
-#        batch_args.zMax = numpy.percentile(matrixFlatten, 98.0)
-#    if batch_args.zMin < numpy.percentile(matrixFlatten, 1.0):
-#        batch_args.zMin = numpy.percentile(matrixFlatten, 1.0)
-#    matrixFlatten[numpy.isnan(matrixFlatten) == False]
-#    matrixFlatten=''
-#    return
+if batch_args.zMax is None:
+    zMaxTest=1
+if batch_args.zMin is None:
+    zMinTest=1
+
+def flattenMatrix(matrixDict):
+    """
+    concat and flatten
+    """
+    matrixFlatten = np.concatenate([x for x in matrixDict.values()]).flatten()
+    # nans are removed from the flattened array
+    return matrixFlatten[np.isnan(matrixFlatten) == False]
+
+def zMx_set(f):
+    zMx=0
+    matrixFlatten=None
+    content=heatmapper.heatmapper()
+    content.readMatrixFile(f)
+    
+    if zMaxTest:
+        matrixFlatten = flattenMatrix(content.matrixDict)
+        # try to avoid outliers by using np.percentile
+        zMx = np.percentile(matrixFlatten, 98.0)
+    return f, zMx
+
+def zMn_set(f):
+    zMn=0
+    matrixFlatten=None
+    content=heatmapper.heatmapper()
+    content.readMatrixFile(f)
+    
+    if zMinTest:
+        if matrixFlatten is None:
+            matrixFlatten = flattenMatrix(content.matrixDict)
+        zMn = np.percentile(matrixFlatten, 1.0)
+    return f, zMn
+
 
 def heatmap(f):
     outfile = os.path.splitext(f)[0]
@@ -82,11 +115,8 @@ def heatmap(f):
     else:
         args = hmScript.parseArguments(['-m', f,'-o', outfile])
 
-    if batch_args.zMax:
-        args.zMax=batch_args.zMax*0.9
-        #args.yMax=batch_args.zMax                      # the profile atop the heatmaps should be on the same scale as the heatmap intenisites
-        args.zMin=batch_args.zMin
-        #args.yMin=batch_args.zMin
+    args.zMax=batch_args.zMax
+    args.zMin=batch_args.zMin
         
     args.heatmapHeight=(float(lines[f])/float(longest))*25
     
@@ -103,22 +133,30 @@ def file_length(f):
     d={}
     with gzip.open(f, 'rb') as infile:
         content= [line.strip().split("\t") for line in infile.readlines()]
-    #d[f]=float(len(content))
+    d[f]=float(len(content))
+
     return f,float(len(content))
    
-def PPResults(alist):                                       #Parallel processing
+def PPResults(alist, func):                                       #Parallel processing
     results={}
     d1={}
     npool = multiprocessing.Pool(int(batch_args.p))    
-    res = npool.map_async(file_length, alist)
+    res = npool.map_async(func, alist)
     results=(res.get())                                     #results returned in form of a list
     d1=dict(results)
     return d1
  
 if __name__ == '__main__':
     
-    lines.update(PPResults(files))
+    lines.update(PPResults(files, file_length))
     longest=max(lines.values())
+    zMxL.update(PPResults(files,zMx_set))
+    zMnL.update(PPResults(files,zMx_set))
+    
+    if max(zMxL.values()) > batch_args.zMax:
+        batch_args.zMax=max(zMxL.values())
+    if min(zMnL.values()) < batch_args.zMin:
+        batch_args.zMin=max(zMnL.values())
     mp_handler(files)
 
 
