@@ -71,26 +71,23 @@ def flattenMatrix(matrixDict):
     return matrixFlatten[np.isnan(matrixFlatten) == False]
 
 def zMx_set(f):
-    zMx=0
-    matrixFlatten=None
-    content=heatmapper.heatmapper()
-    content.readMatrixFile(f)
-    
     if zMaxTest:
+        zMx=0
+        matrixFlatten=None
+        content=heatmapper.heatmapper()
+        content.readMatrixFile(f)
         matrixFlatten = flattenMatrix(content.matrixDict)
         # try to avoid outliers by using np.percentile
         zMx = np.percentile(matrixFlatten, 98.0)
     return f, zMx
 
 def zMn_set(f):
-    zMn=0
-    matrixFlatten=None
-    content=heatmapper.heatmapper()
-    content.readMatrixFile(f)
-    
     if zMinTest:
-        if matrixFlatten is None:
-            matrixFlatten = flattenMatrix(content.matrixDict)
+        zMn=0
+        matrixFlatten=None
+        content=heatmapper.heatmapper()
+        content.readMatrixFile(f)
+        matrixFlatten = flattenMatrix(content.matrixDict)
         zMn = np.percentile(matrixFlatten, 1.0)
     return f, zMn
 
