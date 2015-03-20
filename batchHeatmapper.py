@@ -17,8 +17,9 @@ import multiprocessing
 import signal
 import time
 import numpy as np
+import matplotlib as plt
 from deeptools import parserCommon ## contains many of the option flags for heatmapper and profiler
-from deeptools import heatmapper ##contains matrix handling 
+from deeptools import heatmapper ##contains matrix handling routines
 hmScript=imp.load_source('hmScript', '/home/millimanej/workspace/deepTools/bin/heatmapper')
 
 parser=argparse.ArgumentParser(description="Batch process matrix files into heatmaps using deepTools heatmapper")
@@ -79,6 +80,8 @@ def zMx_set(f):
         matrixFlatten = flattenMatrix(content.matrixDict)
         # try to avoid outliers by using np.percentile
         zMx = np.percentile(matrixFlatten, 98.0)
+        print np.shape(content.matrixDict["genes"])[0]
+       
     return f, zMx
 
 def zMn_set(f):
@@ -90,7 +93,6 @@ def zMn_set(f):
         matrixFlatten = flattenMatrix(content.matrixDict)
         zMn = np.percentile(matrixFlatten, 1.0)
     return f, zMn
-
 
 def heatmap(f):
     outfile = os.path.splitext(f)[0]
@@ -148,7 +150,7 @@ if __name__ == '__main__':
     lines.update(PPResults(files, file_length))
     longest=max(lines.values())
     zMxL.update(PPResults(files,zMx_set))
-    zMnL.update(PPResults(files,zMx_set))
+    zMnL.update(PPResults(files,zMn_set))
     
     if max(zMxL.values()) > batch_args.zMax:
         batch_args.zMax=max(zMxL.values())
