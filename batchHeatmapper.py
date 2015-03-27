@@ -149,12 +149,11 @@ if __name__ == '__main__':
     
     lines.update(PPResults(files, file_length))
     longest=max(lines.values())
-    zMxL.update(PPResults(files,zMx_set))
-    zMnL.update(PPResults(files,zMn_set))
-    
-    if max(zMxL.values()) > batch_args.zMax:
+    if zMaxTest:
+        zMxL.update(PPResults(files,zMx_set))
         batch_args.zMax=max(zMxL.values())
-    if min(zMnL.values()) < batch_args.zMin:
+    if zMinTest:
+        zMnL.update(PPResults(files,zMn_set))
         batch_args.zMin=max(zMnL.values())
     mp_handler(files)
 
